@@ -13,7 +13,6 @@ def mei_chat(message, history):
         }
     ]
     
-    # Geçmiş mesajları ekliyoruz
     for human, assistant in history:
         messages.append({"role": "user", "content": human})
         messages.append({"role": "assistant", "content": assistant})
@@ -22,7 +21,7 @@ def mei_chat(message, history):
 
     try:
         chat_completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             messages=messages,
             temperature=0.7,
             max_tokens=1024,
@@ -31,7 +30,6 @@ def mei_chat(message, history):
     except Exception as e:
         return f"Bağlantıda bir hata oluştu: {str(e)}"
 
-# Gradio arayüzü
 demo = gr.ChatInterface(fn=mei_chat, title="💖 Mei Assistant")
 
 if __name__ == "__main__":
