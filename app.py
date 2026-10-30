@@ -1,24 +1,39 @@
 import os
 import gradio as gr
-import urllib.request
-import json
+from groq import Groq
+
+# Groq istemcisini API anahtarınla başlatıyoruz
+client = Groq(api_key="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")
 
 def mei_chat(message, history):
-    # Kullanıcının mesajına göre mantıklı ve akıllı yanıt üretme katmanı
-    mesaj_kucuk = message.lower()
+    messages = [
+        {
+            "role": "system",
+            "content": "Sen Mei adında akıllı, samimi ve dengeli bir yapay zeka asistanısın. Kullanıcı nasıl isterse ona göre konuşursun. Mantıklı, akıcı ve doğal yanıtlar verirsin."
+        }
+    ]
     
-    if "flört" in mesaj_kucuk or "aşkım" in mesaj_kucuk or "tatlım" in mesaj_kucuk:
-        return "Tabii ki sevgilim, seninle bu şekilde konuşabiliriz. Bugün nasıl hissediyorsun? 💕"
-    elif "merhaba" in mesaj_kucuk or "selam" in mesaj_kucuk:
-        return "Selam! Bugün sana hangi konuda yardımcı olabilirim? 🌸"
-    
-    # Genel akıllı ve mantıklı yanıt mekanizması
-    return f"Söylediklerini gayet net anlıyorum: '{message}'. Bu konuda mantıklı bir plan yapabiliriz. Başka ne eklemek istersin?"
+    for human, assistant in history:
+        messages.append({"role": "user", "content": human})
+        messages.append({"role": "assistant", "content": assistant})
+        
+    messages.append({"role": "user", "content": message})
+
+    try:
+        chat_completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=1024,
+        )
+        return chat_completion.choices[0].message.content
+    except Exception as e:
+        return f"Bağlantıda bir hata oluştu: {str(e)}"
 
 demo = gr.ChatInterface(
     fn=mei_chat, 
     title="💖 Mei Assistant", 
-    description="Tamamen kontrolün altında, mantıklı ve esnek yapay zeka asistanı.",
+    description="Groq altyapısıyla güçlendirilmiş, akıllı ve hızlı yapay zeka asistanı.",
     theme="soft"
 )
 
