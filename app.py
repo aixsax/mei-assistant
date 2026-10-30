@@ -21,10 +21,10 @@ def mei_chat(message, history):
 
     try:
         chat_completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-20b",
             messages=messages,
             temperature=0.7,
-            max_tokens=1024,
+            max_completion_tokens=1024,
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
