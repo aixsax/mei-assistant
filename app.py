@@ -2,17 +2,18 @@ import os
 import gradio as gr
 from groq import Groq
 
-# Groq istemcisini API anahtarınla başlatıyoruz
+# Groq istemcisini başlatıyoruz
 client = Groq(api_key="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")
 
 def mei_chat(message, history):
     messages = [
         {
             "role": "system",
-            "content": "Sen Mei adında akıllı, samimi ve dengeli bir yapay zeka asistanısın. Kullanıcı nasıl isterse ona göre konuşursun. Mantıklı, akıcı ve doğal yanıtlar verirsin."
+            "content": "Sen Mei adında akıllı, samimi ve dengeli bir yapay zeka asistanısın. Mantıklı, akıcı ve doğal yanıtlar verirsin."
         }
     ]
     
+    # Geçmiş mesajları ekliyoruz
     for human, assistant in history:
         messages.append({"role": "user", "content": human})
         messages.append({"role": "assistant", "content": assistant})
@@ -30,12 +31,8 @@ def mei_chat(message, history):
     except Exception as e:
         return f"Bağlantıda bir hata oluştu: {str(e)}"
 
-demo = gr.ChatInterface(
-    fn=mei_chat, 
-    title="💖 Mei Assistant", 
-    description="Groq altyapısıyla güçlendirilmiş, akıllı ve hızlı yapay zeka asistanı.",
-    theme="soft"
-)
+# Gradio arayüzü
+demo = gr.ChatInterface(fn=mei_chat, title="💖 Mei Assistant")
 
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
