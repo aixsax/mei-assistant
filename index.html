@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mei Assistant - Flörtöz Yapay Zeka</title>
+    <title>Mei Assistant</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-slate-900 text-white h-screen flex flex-col justify-between">
     <!-- Header -->
     <header class="bg-slate-800 p-4 shadow-md text-center border-b border-slate-700">
-        <h1 class="text-xl font-bold text-pink-400">💖 Mei Assistant</h1>
-        <p class="text-xs text-slate-400">Senin için özel hazırlanmış yapay zeka asistanı</p>
+        <h1 class="text-xl font-bold text-pink-400">✨ Mei Assistant</h1>
+        <p class="text-xs text-slate-400">Akıllı ve Dengeli Asistan</p>
     </header>
 
     <!-- Chat Box -->
     <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 max-w-2xl w-full mx-auto">
         <div class="flex justify-start">
-            <div class="bg-slate-800 text-pink-200 p-3 rounded-2xl max-w-xs text-sm shadow">
-                Selam! Sensiz biraz eksiktim ama şimdi harikayım. Bugün nasıl geçiyor? ✨
+            <div class="bg-slate-800 text-slate-200 p-3 rounded-2xl max-w-xs text-sm shadow">
+                Selam! Bugün sana nasıl yardımcı olabilirim? (İstersen daha samimi veya flörtöz olabilirim, nasıl istersen öyle konuşuruz! 😊)
             </div>
         </div>
     </div>
@@ -25,7 +25,7 @@
     <!-- Input Area -->
     <div class="bg-slate-800 p-4 border-t border-slate-700">
         <div class="max-w-2xl mx-auto flex gap-2">
-            <input type="text" id="user-input" placeholder="Mei'ye bir şeyler yaz..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-pink-500">
+            <input type="text" id="user-input" placeholder="Mei'ye bir şeyler yaz..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-pink-500" onkeypress="if(event.key === 'Enter') sendMessage()">
             <button onclick="sendMessage()" class="bg-pink-600 hover:bg-pink-500 px-5 py-2 rounded-xl text-sm font-semibold transition">Gönder</button>
         </div>
     </div>
@@ -44,20 +44,48 @@
 
             // Yükleniyor efekti
             const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div id="${loadingId}" class="flex justify-start"><div class="bg-slate-800 text-slate-400 p-3 rounded-2xl text-sm">Mei yazıyor... 💭</div></div>`;
+            container.innerHTML += `<div id="${loadingId}" class="flex justify-start"><div class="bg-slate-800 text-slate-400 p-3 rounded-2xl text-sm">Mei düşünüyor... 💭</div></div>`;
             container.scrollTop = container.scrollHeight;
 
+            // Kullanıcının flört isteyip istemediğini kontrol edelim
+            const flortKelimeleri = ["flört", "aşkım", "sevgilim", "tatlım", "canım", "özledim"];
+            const flortIstiyorMu = flortKelimeleri.some(kelime => text.toLowerCase().includes(kelime));
+
+            // Promptu kullanıcı isteğine göre ayarlıyoruz
+            let promptText = text;
+            if (flortIstiyorMu) {
+                promptText = "Kullanıcı seninle flört etmeni istiyor: " + text;
+            } else {
+                promptText = "Normal, samimi ve dozunda bir arkadaş gibi yanıt ver: " + text;
+            }
+
             try {
-                // Şimdilik test amaçlı örnek yanıt sistemi (Dilerseniz kendi API'nize bağlayabilirsiniz)
-                setTimeout(() => {
-                    document.getElementById(loadingId).remove();
-                    container.innerHTML += `<div class="flex justify-start"><div class="bg-slate-800 text-pink-200 p-3 rounded-2xl max-w-xs text-sm shadow">Aşkım harika konuşuyorsun, seni dinliyorum! 💕</div></div>`;
-                    container.scrollTop = container.scrollHeight;
-                }, 1000);
+                const response = await fetch("https://api-inference.huggingface.co/models/aixbey/mei-assistant", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ inputs: promptText })
+                });
+                
+                const data = await response.json();
+                document.getElementById(loadingId).remove();
+
+                let reply = "Seni dinliyorum, devam et!">
+                
+                if (Array.isArray(data) && data[0]?.generated_text) {
+                    reply = data[0].generated_text;
+                    // Gelen yanıttan kendi gönderdiğimiz prompt kısmını temizleyelim ki düzgün dursun
+                    reply = reply.replace(promptText, "").trim();
+                    if(!reply) reply = "Anlıyorum, başka neler yapmak istersin?";
+                } else if (data.error) {
+                    reply = "Şu an bağlantıda ufak bir gecikme var, tekrar dene istersen.";
+                }
+
+                container.innerHTML += `<div class="flex justify-start"><div class="bg-slate-800 text-slate-200 p-3 rounded-2xl max-w-xs text-sm shadow">${reply}</div></div>`;
             } catch (err) {
                 document.getElementById(loadingId).remove();
                 container.innerHTML += `<div class="flex justify-start"><div class="bg-slate-800 text-red-400 p-3 rounded-2xl text-sm">Bir hata oluştu.</div></div>`;
             }
+            container.scrollTop = container.scrollHeight;
         }
     </script>
 </body>
