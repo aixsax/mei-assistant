@@ -10,14 +10,14 @@
     <!-- Header -->
     <header class="bg-slate-800 p-4 shadow-md text-center border-b border-slate-700">
         <h1 class="text-xl font-bold text-pink-400">✨ Mei Assistant</h1>
-        <p class="text-xs text-slate-400">Akıllı ve Dengeli Asistan</p>
+        <p class="text-xs text-slate-400">Akıllı Asistan</p>
     </header>
 
     <!-- Chat Box -->
     <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 max-w-2xl w-full mx-auto">
         <div class="flex justify-start">
             <div class="bg-slate-800 text-slate-200 p-3 rounded-2xl max-w-xs text-sm shadow">
-                Selam! Bugün sana nasıl yardımcı olabilirim? (İstersen daha samimi veya flörtöz olabilirim, nasıl istersen öyle konuşuruz! 😊)
+                Selam! Bugün sana nasıl yardımcı olabilirim? 😊
             </div>
         </div>
     </div>
@@ -47,43 +47,29 @@
             container.innerHTML += `<div id="${loadingId}" class="flex justify-start"><div class="bg-slate-800 text-slate-400 p-3 rounded-2xl text-sm">Mei düşünüyor... 💭</div></div>`;
             container.scrollTop = container.scrollHeight;
 
-            // Kullanıcının flört isteyip istemediğini kontrol edelim
-            const flortKelimeleri = ["flört", "aşkım", "sevgilim", "tatlım", "canım", "özledim"];
-            const flortIstiyorMu = flortKelimeleri.some(kelime => text.toLowerCase().includes(kelime));
-
-            // Promptu kullanıcı isteğine göre ayarlıyoruz
-            let promptText = text;
-            if (flortIstiyorMu) {
-                promptText = "Kullanıcı seninle flört etmeni istiyor: " + text;
-            } else {
-                promptText = "Normal, samimi ve dozunda bir arkadaş gibi yanıt ver: " + text;
-            }
-
             try {
                 const response = await fetch("https://api-inference.huggingface.co/models/aixbey/mei-assistant", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ inputs: promptText })
+                    body: JSON.stringify({ inputs: text })
                 });
                 
                 const data = await response.json();
                 document.getElementById(loadingId).remove();
 
-                let reply = "Seni dinliyorum, devam et!">
+                let reply = "Seni dinliyorum, anlat bakalım!";
                 
                 if (Array.isArray(data) && data[0]?.generated_text) {
-                    reply = data[0].generated_text;
-                    // Gelen yanıttan kendi gönderdiğimiz prompt kısmını temizleyelim ki düzgün dursun
-                    reply = reply.replace(promptText, "").trim();
-                    if(!reply) reply = "Anlıyorum, başka neler yapmak istersin?";
+                    reply = data[0].generated_text.replace(text, "").trim();
+                    if(!reply) reply = "Bunu düşüneceğim, başka neler yapıyoruz?";
                 } else if (data.error) {
-                    reply = "Şu an bağlantıda ufak bir gecikme var, tekrar dene istersen.";
+                    reply = "Model şu an hazırlanıyor sevgilim, 1 dakika sonra tekrar yazabilirsin! ✨";
                 }
 
                 container.innerHTML += `<div class="flex justify-start"><div class="bg-slate-800 text-slate-200 p-3 rounded-2xl max-w-xs text-sm shadow">${reply}</div></div>`;
             } catch (err) {
                 document.getElementById(loadingId).remove();
-                container.innerHTML += `<div class="flex justify-start"><div class="bg-slate-800 text-red-400 p-3 rounded-2xl text-sm">Bir hata oluştu.</div></div>`;
+                container.innerHTML += `<div class="flex justify-start"><div class="bg-slate-800 text-red-400 p-3 rounded-2xl text-sm">Bağlantı hatası oluştu.</div></div>`;
             }
             container.scrollTop = container.scrollHeight;
         }
