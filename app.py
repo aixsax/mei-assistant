@@ -13,18 +13,24 @@ def mei_chat(message, history):
         }
     ]
     
-    for human, assistant in history:
-        messages.append({"role": "user", "content": human})
-        messages.append({"role": "assistant", "content": assistant})
-        
-    messages.append({"role": "user", "content": message})
+    # Geçmiş mesajları güvenli bir şekilde ekliyoruz
+    if history:
+        for entry in history:
+            if isinstance(entry, (list, tuple)) and len(entry) == 2:
+                user_msg, bot_msg = entry
+                if user_msg:
+                    messages.append({"role": "user", "content": str(user_msg)})
+                if bot_msg:
+                    messages.append({"role": "assistant", "content": str(bot_msg)})
+                    
+    messages.append({"role": "user", "content": str(message)})
 
     try:
         chat_completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
+            model="llama-3.1-8b-instant",
             messages=messages,
             temperature=0.7,
-            max_completion_tokens=1024,
+            max_tokens=1024,
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
